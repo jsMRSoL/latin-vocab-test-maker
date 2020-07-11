@@ -1,5 +1,5 @@
 [package]
-name = "Latin-vocab-test-maker"
+name = "latin-vocab-test-maker"
 version = "0.1.0"
 authors = ["Simon Pitt <si_pitt@yahoo.com>"]
 edition = "2018"

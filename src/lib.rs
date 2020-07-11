@@ -4,22 +4,19 @@ use serde::Deserialize;
 
 #[derive(Debug)]
 pub struct Question {
-    pub greek: String,
+    pub latin: String,
     pub answers: Vec<AnswerOption>,
 }
 
 impl Clone for Question {
     fn clone(&self) -> Self {
-        let greek = self.greek.clone();
+        let latin = self.latin.clone();
         let mut answers: Vec<AnswerOption> = Vec::new();
         for answer in &self.answers {
             let ao_dup = answer.clone();
             answers.push(ao_dup);
         }
-        Question {
-            greek,
-            answers,
-        }
+        Question { latin, answers }
     }
 }
 
@@ -46,7 +43,7 @@ impl Clone for AnswerOption {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub struct Record {
-    pub greek: String,
+    pub latin: String,
     #[serde(rename = "Part of Speech")]
     pub part_of_speech: String,
     pub english: String,
@@ -79,4 +76,3 @@ pub fn prompt() {
     refresh();
     getch();
 }
-

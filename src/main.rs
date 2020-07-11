@@ -1,6 +1,6 @@
 use csv::Reader;
 // use english_past::{lookup, Verb};
-use greek_vocab_test_maker::*;
+use latin_vocab_test_maker::*;
 use mw_past::{lookup, Verb};
 use ncurses::*;
 use regex::Regex;
@@ -47,7 +47,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         curs_set(CURSOR_VISIBILITY::CURSOR_INVISIBLE);
         // let header_win: WINDOW = newwin(5, 80, 0, 0);
         HEADER.with(|header| {
-            overwrite_win(*header, "Greek vocab test for Moodle Maker");
+            overwrite_win(*header, "Latin vocab test for Moodle Maker");
             mvwaddstr(
                 *header,
                 3,
@@ -167,7 +167,7 @@ fn export(questions: &Vec<Question>) {
     for question in questions.iter() {
         question_number += 1;
         question_name = format!("{}_q_{}", ex_name, question_number);
-        question_word = question.greek.as_str();
+        question_word = question.latin.as_str();
         // question_code = moodle_shortanswer(&question.answers[num]);
         question_code.clear();
         question_code = format!(
@@ -224,12 +224,12 @@ fn import(questions: &mut Vec<Question>) {
             pos if pos.contains("verb") => {
                 let tx1 = mpsc::Sender::clone(&tx);
                 thread::spawn(move || {
-                    let verb_questions: Vec<Question> = build_verb(record.greek, record.english);
+                    let verb_questions: Vec<Question> = build_verb(record.latin, record.english);
                     tx1.send(verb_questions).unwrap();
                 });
             }
             _ => {
-                build_non_verb(questions, record.greek, record.english);
+                build_non_verb(questions, record.latin, record.english);
                 progress_bar();
             }
         }
@@ -301,7 +301,7 @@ fn clean_text(s: &str) -> String {
     format!("{}", s)
 }
 
-fn build_non_verb(questions: &mut Vec<Question>, greek: String, english: String) {
+fn build_non_verb(questions: &mut Vec<Question>, latin: String, english: String) {
     let mut answer_options: Vec<AnswerOption> = Vec::new();
     let english = clean_text(&english);
     for answer in english.split(",").collect::<Vec<&str>>() {
@@ -313,15 +313,13 @@ fn build_non_verb(questions: &mut Vec<Question>, greek: String, english: String)
         answer_options.push(answer_option);
     }
     let question = Question {
-        greek: greek,
+        latin: latin,
         answers: answer_options,
     };
     questions.push(question);
 }
 
-fn build_verb(greek: String, english: String) -> Vec<Question> {
-    // println!("Greek verb: {}", greek);
-    // println!("English: {}", english);
+fn build_verb(latin: String, english: String) -> Vec<Question> {
     let mut questions: Vec<Question> = Vec::new();
     let english = english.replace("I ", "");
     let english = clean_text(&english);
@@ -332,8 +330,8 @@ fn build_verb(greek: String, english: String) -> Vec<Question> {
         verb_collection.push(verb);
     }
     // println!("Answers: {:?}", answers);
-    let greek_parts = greek.split(",").collect::<Vec<&str>>();
-    // println!("Parts: {:?}", greek_parts);
+    let latin_parts = latin.split(",").collect::<Vec<&str>>();
+    // println!("Parts: {:?}", latin_parts);
     //present tense
     let mut answer_options: Vec<AnswerOption> = Vec::new();
     for verb in &verb_collection {
@@ -353,17 +351,17 @@ fn build_verb(greek: String, english: String) -> Vec<Question> {
         answer_options.push(answer_option_close);
     }
     let present = Question {
-        greek: greek_parts[0].trim().to_string(),
+        latin: latin_parts[0].trim().to_string(),
         answers: answer_options,
     };
     questions.push(present);
-    // future tense
-    if greek_parts.len() > 1 {
+    // infinitive
+    if latin_parts.len() > 1 {
         let mut answer_options: Vec<AnswerOption> = Vec::new();
         for verb in &verb_collection {
             let answer_option = AnswerOption {
                 mark: 100,
-                answer: format!("I*ll {}", verb.present),
+                answer: format!("to {}", verb.present),
                 feedback: "Well done!".to_string(),
             };
             answer_options.push(answer_option);
@@ -375,14 +373,14 @@ fn build_verb(greek: String, english: String) -> Vec<Question> {
             };
             answer_options.push(answer_option_close);
         }
-        let future = Question {
-            greek: greek_parts[1].trim().to_string(),
+        let infinitive = Question {
+            latin: latin_parts[1].trim().to_string(),
             answers: answer_options,
         };
-        questions.push(future);
+        questions.push(infinitive);
     }
-    // aorist tense
-    if greek_parts.len() > 2 {
+    // perfect tense
+    if latin_parts.len() > 2 {
         let mut answer_options: Vec<AnswerOption> = Vec::new();
         for verb in &verb_collection {
             let answer_option = AnswerOption {
@@ -399,19 +397,19 @@ fn build_verb(greek: String, english: String) -> Vec<Question> {
             };
             answer_options.push(answer_option_close);
         }
-        let aorist = Question {
-            greek: greek_parts[2].trim().to_string(),
+        let perfect = Question {
+            latin: latin_parts[2].trim().to_string(),
             answers: answer_options,
         };
-        questions.push(aorist);
+        questions.push(perfect);
     }
-    // aorist passive
-    if greek_parts.len() > 3 {
+    // passive participle
+    if latin_parts.len() > 3 {
         let mut answer_options: Vec<AnswerOption> = Vec::new();
         for verb in &verb_collection {
             let answer_option = AnswerOption {
                 mark: 100,
-                answer: format!("I was {}", verb.past_part),
+                answer: format!("having been {}", verb.past_part),
                 feedback: "Well done!".to_string(),
             };
             answer_options.push(answer_option);
@@ -423,11 +421,11 @@ fn build_verb(greek: String, english: String) -> Vec<Question> {
             };
             answer_options.push(answer_option_close);
         }
-        let aorist_passive = Question {
-            greek: greek_parts[3].trim().to_string(),
+        let passive_pt = Question {
+            latin: latin_parts[3].trim().to_string(),
             answers: answer_options,
         };
-        questions.push(aorist_passive);
+        questions.push(passive_pt);
     }
     questions
 }
@@ -452,6 +450,8 @@ fn pager(questions: &mut Vec<Question>) {
         let mut cached_q: usize = 0;
         let mut next_cached_q: usize = 0;
         let mut lines_required: usize = 0;
+        wclear(*main_win);
+        box_(*main_win, 0, 0);
         // iterate over questions and pause at the end of the window
         loop {
             let max_qs: usize = questions.len();
@@ -466,10 +466,10 @@ fn pager(questions: &mut Vec<Question>) {
                     *main_win,
                     line_count,
                     1,
-                    &format!("{}: {}", current_q + 1, questions[current_q].greek),
+                    &format!("{}: {}", current_q + 1, questions[current_q].latin),
                 );
                 // mvwin(*main_win, line_count, 1);
-                // print!("{}: {}", current_q + 1, questions[current_q].greek);
+                // print!("{}: {}", current_q + 1, questions[current_q].latin);
                 line_count += 1;
                 for answer in &questions[current_q].answers {
                     let q_str: &str = &format!(
@@ -587,7 +587,7 @@ fn edit(questions: &mut Vec<Question>) {
     loop {
         MAIN_WIN.with(|main_win| {
             let mut line_count: i32 = 1;
-            overwrite_win(*main_win, &format!("1: {}", question.greek));
+            overwrite_win(*main_win, &format!("1: {}", question.latin));
             line_count += 1;
             for (num, answer) in question.answers.iter().enumerate() {
                 let q_str: &str = &format!(
@@ -630,7 +630,7 @@ fn reorder_answers(question: &mut Question) {
     loop {
         MAIN_WIN.with(|main_win| {
             let mut line_count: i32 = 1;
-            overwrite_win(*main_win, &format!("1: {}", question.greek));
+            overwrite_win(*main_win, &format!("1: {}", question.latin));
             line_count += 1;
             for (num, answer) in question.answers.iter().enumerate() {
                 let q_str: &str = &format!(
@@ -677,8 +677,8 @@ fn edit_answer(question: &mut Question) {
     // Get the answer
     let mut choice = get_num_input(0, question.answers.len());
     if choice == 0 {
-        let greek = &mut question.greek;
-        *greek = get_input_with_initial("Edit the question word: ", greek);
+        let latin = &mut question.latin;
+        *latin = get_input_with_initial("Edit the question word: ", latin);
     } else {
         choice -= 1;
         let answer = &mut question.answers[choice].answer;
